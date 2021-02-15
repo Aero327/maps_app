@@ -4,28 +4,50 @@ import sys
 import pygame
 import requests
 
-SCALE = 14
+
+def get_map():
+    map_request = f"http://static-maps.yandex.ru/1.x/?ll={COORDS}&z={SCALE}&l=map"
+    response = requests.get(map_request)
+
+    if not response:
+        print("Ошибка выполнения запроса:")
+        print(map_request)
+        print("Http статус:", response.status_code, "(", response.reason, ")")
+        sys.exit(1)
+
+    map_file = "map.png"
+    with open(map_file, "wb") as file:
+        file.write(response.content)
+    return map_request, response, map_file
+
+
+SCALE = 13
 COORDS = '56.229421,58.022833'
-map_request = f"http://static-maps.yandex.ru/1.x/?ll={COORDS}&z={SCALE}&l=map"
-response = requests.get(map_request)
-
-if not response:
-    print("Ошибка выполнения запроса:")
-    print(map_request)
-    print("Http статус:", response.status_code, "(", response.reason, ")")
-    sys.exit(1)
-
-map_file = "map.png"
-with open(map_file, "wb") as file:
-    file.write(response.content)
 
 pygame.init()
 screen = pygame.display.set_mode((600, 450))
 pygame.display.set_caption('Maps App!')
-screen.blit(pygame.image.load(map_file), (0, 0))
-pygame.display.flip()
-while pygame.event.wait().type != pygame.QUIT:
-    pass
-pygame.quit()
+map_request, response, map_file = get_map()
 
-os.remove(map_file)
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            try:
+                os.remove(map_file)
+            except Exception:
+                pass
+            sys.exit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_PAGEUP:
+                if SCALE + 1 < 18:
+                    SCALE += 1
+                    map_request, response, map_file = get_map()
+
+            if event.key == pygame.K_PAGEDOWN:
+                if 8 < SCALE + 1:
+                    SCALE -= 1
+                    map_request, response, map_file = get_map()
+
+    screen.blit(pygame.image.load(map_file), (0, 0))
+    pygame.display.flip()
