@@ -6,7 +6,7 @@ import requests
 
 
 def get_map():
-    map_request = f"http://static-maps.yandex.ru/1.x/?ll={COORDS}&z={SCALE}&l={cur_spn}"
+    map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(COORDS)}&z={SCALE}&l={cur_spn}"
     response = requests.get(map_request)
 
     if not response:
@@ -22,7 +22,8 @@ def get_map():
 
 
 SCALE = 13
-COORDS = '56.229421,58.022833'
+COORDS = ['56.229421', '58.022833']
+movement_speed = 0.0005
 cur_spn = 'map'
 
 pygame.init()
@@ -49,6 +50,22 @@ while True:
                 if 8 < SCALE + 1:
                     SCALE -= 1
                     map_request, response, map_file = get_map()
+
+            if event.key == pygame.K_RIGHT:
+                COORDS[0] = str(float(COORDS[0]) + movement_speed)
+                map_request, response, map_file = get_map()
+
+            if event.key == pygame.K_LEFT:
+                COORDS[0] = str(float(COORDS[0]) - movement_speed)
+                map_request, response, map_file = get_map()
+
+            if event.key == pygame.K_UP:
+                COORDS[1] = str(float(COORDS[1]) + movement_speed)
+                map_request, response, map_file = get_map()
+
+            if event.key == pygame.K_DOWN:
+                COORDS[1] = str(float(COORDS[1]) - movement_speed)
+                map_request, response, map_file = get_map()
 
             if event.key == pygame.K_SPACE:
                 if cur_spn == 'map':
